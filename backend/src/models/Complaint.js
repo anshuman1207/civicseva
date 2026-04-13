@@ -19,8 +19,25 @@ const complaintSchema = new mongoose.Schema({
     type: { type: String, default: 'Point' },
     coordinates: { type: [Number], required: true } // [longitude, latitude]
   },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  city: { type: String },
+  pincode: { 
+    type: String, 
+    match: [/^\d{6}$/, 'Pincode must be exactly 6 digits']
+  },
   upvotes: { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now }
+  priorityScore: { type: Number, default: 0 },
+  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  verifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  timeline: [{
+    status: { type: String },
+    message: { type: String },
+    timestamp: { type: Date, default: Date.now },
+    actor: { type: String, default: 'System' },
+    isMilestone: { type: Boolean, default: false }
+  }]
+}, { 
+  timestamps: true 
 });
 
 // Index for geo-spatial queries
