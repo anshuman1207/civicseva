@@ -1,0 +1,19 @@
+# Dependency Folders
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Environment Variables
+.env
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# Build/Upload Files
+frontend/dist/
+backend/src/uploads/*
+!backend/src/uploads/.gitkeep
+
+# OS specific files
+.DS_Store
+Thumbs.db
