@@ -19,7 +19,13 @@ const complaintSchema = new mongoose.Schema({
     type: { type: String, default: 'Point' },
     coordinates: { type: [Number], required: true } // [longitude, latitude]
   },
+  city: { type: String },
+  pincode: { 
+    type: String, 
+    match: [/^\d{6}$/, 'Pincode must be exactly 6 digits']
+  },
   upvotes: { type: Number, default: 0 },
+  priorityScore: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 

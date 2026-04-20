@@ -18,7 +18,18 @@
       <div class="logo">
         <h1>Civic<span>Seva</span></h1>
       </div>
-      <button id="report-btn" class="primary-btn">Report Issue</button>
+      <div id="gamification-hud" style="color: var(--dark); font-size: 0.9rem; display: flex; flex-direction: column; align-items: flex-end; margin-right: 10px;">
+        <span style="font-weight: 600;"><span id="user-level" data-i18n="gamification.level">Loading...</span></span>
+        <span style="color: #F59E0B; font-weight: bold;">⭐ <span id="user-points">0</span> <span data-i18n="gamification.pts">pts</span></span>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <select id="language-selector" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--white); color: var(--dark); cursor: pointer; font-weight: 500;">
+          <option value="en" style="color: black;">English</option>
+          <option value="bn" style="color: black;">বাংলা (Bengali)</option>
+          <option value="hi" style="color: black;">हिंदी (Hindi)</option>
+        </select>
+        <button id="report-btn" class="primary-btn" data-i18n="header.reportBtn">Report Issue</button>
+      </div>
     </header>
 
     <main class="app-main">
@@ -29,8 +40,8 @@
     <div id="report-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn">&times;</span>
-        <h2>Report a Civic Issue</h2>
-        <p class="subtitle">Your report helps authorities clear the problem faster.</p>
+        <h2 data-i18n="modal.title">Report a Civic Issue</h2>
+        <p class="subtitle" data-i18n="modal.subtitle">Your report helps authorities clear the problem faster.</p>
         
         <form id="complaint-form" enctype="multipart/form-data">
           <!-- Coordinates will be auto-filled from map click -->
@@ -38,39 +49,58 @@
           <input type="hidden" id="lng" name="longitude">
 
           <div class="form-group">
-            <label for="title">Issue Title</label>
-            <input type="text" id="title" name="title" required placeholder="e.g. Deep pothole on MG Road">
+            <label for="title" data-i18n="form.issueTitle">Issue Title</label>
+            <input type="text" id="title" name="title" required placeholder="e.g. Deep pothole on MG Road" data-i18n="[placeholder]form.titlePlaceholder">
           </div>
 
           <div class="form-group">
-            <label for="category">Category</label>
+            <label for="city" data-i18n="form.city">City</label>
+            <input type="text" id="city" name="city" required placeholder="e.g. Kolkata" data-i18n="[placeholder]form.cityPlaceholder">
+          </div>
+
+          <div class="form-group">
+            <label for="pincode" data-i18n="form.pincode">Pincode</label>
+            <input type="text" id="pincode" name="pincode" required placeholder="e.g. 700001" pattern="\d{6}" title="Pincode must be exactly 6 digits" data-i18n="[placeholder]form.pincodePlaceholder;[title]form.pincodeTitle">
+          </div>
+
+          <div class="form-group">
+            <label for="category" data-i18n="form.category">Category</label>
             <select id="category" name="category" required>
-              <option value="Roads">Roads</option>
-              <option value="Garbage">Garbage</option>
-              <option value="Water">Water</option>
-              <option value="Electricity">Electricity</option>
-              <option value="Others">Others</option>
+              <option value="Roads" data-i18n="form.categories.roads">Roads</option>
+              <option value="Garbage" data-i18n="form.categories.garbage">Garbage</option>
+              <option value="Water" data-i18n="form.categories.water">Water</option>
+              <option value="Electricity" data-i18n="form.categories.electricity">Electricity</option>
+              <option value="Others" data-i18n="form.categories.others">Others</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="description">Description</label>
-            <textarea id="description" name="description" rows="3" required placeholder="Provide more details..."></textarea>
+            <label for="description" data-i18n="form.description">Description</label>
+            <textarea id="description" name="description" rows="3" required placeholder="Provide more details..." data-i18n="[placeholder]form.descPlaceholder"></textarea>
           </div>
 
           <div class="form-group file-upload-wrapper">
-            <label for="photo">Upload Photo</label>
+            <label for="photo" data-i18n="form.uploadPhoto">Upload Photo</label>
             <input type="file" id="photo" name="photo" accept="image/*">
-            <small>Optional, but highly recommended for faster resolution.</small>
+            <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="blur-photo" name="blurPhoto" style="width: auto;">
+              <label for="blur-photo" style="display: inline; font-size: 0.85rem;" data-i18n="form.blur">Blur Faces/Number plates (Privacy)</label>
+            </div>
+            <small data-i18n="form.photoSubtitle" style="display: block; margin-top: 4px;">Optional, but highly recommended for faster resolution.</small>
           </div>
 
-          <button type="submit" class="primary-btn full-width">Submit Report</button>
+          <button type="submit" class="primary-btn full-width" data-i18n="form.submitBtn">Submit Report</button>
         </form>
       </div>
     </div>
 
-    <!-- Leaflet JS -->
+    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container"></div>
+
+    <!-- Libraries -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="https://unpkg.com/i18next@23.10.1/i18next.min.js"></script>
     <script type="module" src="./main.js"></script>
   </body>
 </html>
