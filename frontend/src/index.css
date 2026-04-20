@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0061a3;
+  --color-primary-container: #4da8ff;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #003c67;
+  
+  --color-secondary: #5c5f61;
+  --color-secondary-container: #e0e3e5;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #626567;
+  
+  --color-surface: #f8f9ff;
+  --color-surface-dim: #d7dae1;
+  --color-surface-bright: #f8f9ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f1f3fb;
+  --color-surface-container: #ebeef5;
+  --color-surface-container-high: #e5e8f0;
+  --color-surface-container-highest: #e0e2ea;
+  
+  --color-on-surface: #181c21;
+  --color-on-surface-variant: #404752;
+  
+  --color-outline: #707883;
+  --color-outline-variant: #c0c7d3;
+  
+  --color-background: #f8f9ff;
+  --color-on-background: #181c21;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  
+  --color-success: #146c2e;
+  --color-success-container: #a8f5a5;
+  --color-on-success-container: #002106;
+  
+  --color-warning: #7c5800;
+  --color-warning-container: #ffdea4;
+  --color-on-warning-container: #261900;
+  
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --radius-sm: 0.25rem;
+  --radius-DEFAULT: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  --shadow-soft-1: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+  --shadow-soft-2: 0 8px 24px -4px rgba(0, 0, 0, 0.08);
+  --shadow-soft-3: 0 16px 40px -8px rgba(0, 0, 0, 0.12);
+  
+  --spacing-container-max: 1280px;
+}
+
+/* ─── Dark Mode Overrides ──────────────────────── */
+[data-theme="dark"] {
+  --color-primary: #8dcfff;
+  --color-primary-container: #00497a;
+  --color-on-primary: #003258;
+  --color-on-primary-container: #c6e7ff;
+  
+  --color-secondary: #c4c7ca;
+  --color-secondary-container: #3a3d3f;
+  --color-on-secondary: #2d3133;
+  --color-on-secondary-container: #dde0e3;
+  
+  --color-surface: #101418;
+  --color-surface-dim: #101418;
+  --color-surface-bright: #363a3f;
+  --color-surface-container-lowest: #0b0f12;
+  --color-surface-container-low: #181c21;
+  --color-surface-container: #1c2026;
+  --color-surface-container-high: #272b30;
+  --color-surface-container-highest: #31353b;
+  
+  --color-on-surface: #e0e2ea;
+  --color-on-surface-variant: #c0c7d3;
+  
+  --color-outline: #8a919d;
+  --color-outline-variant: #404752;
+  
+  --color-background: #101418;
+  --color-on-background: #e0e2ea;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  
+  --color-success: #8dd88c;
+  --color-success-container: #005319;
+  --color-on-success-container: #a8f5a5;
+  
+  --color-warning: #f5c349;
+  --color-warning-container: #594000;
+  --color-on-warning-container: #ffdea4;
+
+  --shadow-soft-1: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+  --shadow-soft-2: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+  --shadow-soft-3: 0 16px 40px -8px rgba(0, 0, 0, 0.5);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-on-background);
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: var(--shadow-soft-3);
+  }
+
+  [data-theme="dark"] .glass-panel {
+    background-color: rgba(28, 32, 38, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+  /* Unified Cards */
+  .card-base {
+    background-color: var(--color-surface-container-lowest);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-soft-1);
+    border: 1px solid color-mix(in srgb, var(--color-outline-variant) 30%, transparent);
+  }
+  .card-hover {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .card-hover:hover {
+    box-shadow: var(--shadow-soft-2);
+  }
+
+  /* Unified Typography */
+  .text-heading {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-on-surface);
+    letter-spacing: -0.025em;
+  }
+  .text-subheading {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-on-surface);
+    letter-spacing: -0.025em;
+  }
+  .text-body {
+    font-size: 0.875rem;
+    color: var(--color-on-surface-variant);
+    line-height: 1.5;
+  }
+  .text-caption {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-on-surface-variant);
+  }
