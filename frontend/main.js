@@ -1,6 +1,6 @@
 // Configuration
-const API_URL = 'http://localhost:5000/api/complaints';
-const AUTH_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://your-render-url.onrender.com/api/complaints';
+const AUTH_URL = 'https://your-render-url.onrender.com/api/auth';
 let map;
 let clickMarker = null;
 const mapMarkers = {}; // Store markers by complaint ID
@@ -145,7 +145,7 @@ function refreshAllPopups() {
 }
 
 // Initialize Socket.io
-const socket = io('http://localhost:5000');
+const socket = io('https://your-render-url.onrender.com'); // Update the socket URL too
 socket.on('connect', () => {
   console.log('Connected to real-time updates');
 });
