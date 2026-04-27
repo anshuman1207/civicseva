@@ -12,23 +12,27 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter (Optional but recommended)
+// File filter - Strict Image Validation
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    return cb(null, true);
+  const allowedExtensions = ['.jpg', '.jpeg', '.png'];
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+  
+  if (allowedExtensions.includes(ext) && allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
   } else {
-    cb(new Error('Only images (jpg, jpeg, png) are allowed!'));
+    cb(new Error('Invalid file type. Only JPG, JPEG, and PNG are allowed!'), false);
   }
 };
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { 
+    fileSize: 3 * 1024 * 1024, // 3MB limit
+    files: 1 
+  },
   fileFilter: fileFilter
 });
+
 
 module.exports = upload;
