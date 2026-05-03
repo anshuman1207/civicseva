@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicSeva | Smart Citizen Hub</title>
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    /* Landing Override */
+    body {
+      overflow-y: auto !important; /* Allow scroll for landing */
+      height: auto !important;
+      display: block !important;
+    }
+    
+    /* Scroll-hide Header Styles */
+    .landing-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 20px 40px;
+      background: rgba(11, 16, 17, 0.9);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      color: white;
+      border-bottom: 1px solid #1d2628;
+    }
+    
+    .landing-header .logo h1 {
+      margin: 0; color: white !important; font-size: 1.5rem;
+    }
+    .landing-header .logo h1 span {
+      color: var(--primary) !important;
+    }
+
+    /* Sidebar Menu */
+    .sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: 300px;
+      z-index: 90;
+      pointer-events: none; /* Only capture clicks when open */
+    }
+    .sidebar-bg {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 100%;
+      background: var(--white);
+      clip-path: circle(30px at 40px 40px);
+    }
+    .sidebar-toggle {
+      position: absolute;
+      top: 15px; left: 15px;
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      z-index: 95;
+      pointer-events: auto;
+    }
+
+    .nav-list {
+      list-style: none; padding: 25px; margin: 0;
+      position: absolute; top: 80px; width: 230px;
+      pointer-events: none;
+    }
+    .nav-item {
+      display: flex; align-items: center; margin-bottom: 20px;
+      cursor: pointer; opacity: 0; transform: translateY(50px);
+    }
+    .nav-icon { width: 40px; height: 40px; border-radius: 50%; margin-right: 20px; border: 2px solid; }
+    .nav-text { height: 20px; width: 120px; border-radius: 5px; border: 2px solid; }
+
+    /* Hero & Content */
+    .hero {
+      height: 60vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 100px 20px 20px;
+      margin-bottom: 50px;
+    }
+    .hero h2 { font-size: 3rem; margin-bottom: 10px; }
+    .hero p { font-size: 1.2rem; opacity: 0.8; max-width: 600px; }
+
+    .action-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background: var(--white);
+      padding: 30px 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-md);
+      text-align: center;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid var(--border);
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+    .card .card-icon {
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+    }
+    .card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 10px;
+      color: var(--dark);
+    }
+    .card p {
+      font-size: 0.95rem;
+      opacity: 0.8;
+      line-height: 1.4;
+      margin: 0;
+    }
+    
+    /* Dark Mode Global Toggle */
+    .theme-toggle-btn {
+      background: none; border: 1px solid var(--border);
+      color: var(--white);
+      cursor: pointer; padding: 8px 12px; border-radius: 4px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Framer Motion Managed Header -->
+  <header class="landing-header" id="scroll-header">
+    <div style="width:50px;"></div> <!-- Spacer for sidebar toggle -->
+    <div class="logo">
+      <h1>Civic<span>Seva</span></h1>
+    </div>
+    <nav style="display:flex; gap:15px; align-items:center;">
+      <button class="theme-toggle-btn" id="theme-toggle">🌗 Toggle Theme</button>
+      <a href="app.html" class="primary-btn" style="text-decoration:none;">Launch App</a>
+    </nav>
+  </header>
+
+  <!-- Framer Motion Managed Sidebar -->
+  <div class="sidebar-overlay" id="sidebar-container">
+    <div class="sidebar-bg" id="sidebar-bg"></div>
+    <button class="sidebar-toggle" id="sidebar-toggle" style="display:flex; flex-direction:column; justify-content:center; align-items:center; gap:5px;">
+      <div id="line1" style="width:22px; height:2.5px; background:white; border-radius:2px; transform-origin: center;"></div>
+      <div id="line2" style="width:22px; height:2.5px; background:white; border-radius:2px;"></div>
+      <div id="line3" style="width:22px; height:2.5px; background:white; border-radius:2px; transform-origin: center;"></div>
+    </button>
+    <ul class="nav-list" id="nav-list">
+      <!-- Generated via JS -->
+    </ul>
+  </div>
+
+  <main style="padding-top: 100px;">
+    <section class="hero">
+      <h2>Empowering the Modern Citizen</h2>
+      <p>Report issues, track progress, earn rewards, and improve your city natively powered by location intelligence and artificial intelligence.</p>
+    </section>
+
+    <!-- Cards Section -->
+    <section class="action-cards" id="action-cards">
+      <a href="app.html" class="card">
+        <div class="card-icon">📍</div>
+        <h3>Explore Issues Nearby</h3>
+        <p>Shows nearby complaints instantly on the map interface.</p>
+      </a>
+      
+      <a href="app.html#dashboard" class="card">
+        <div class="card-icon">📝</div>
+        <h3>Track My Complaints</h3>
+        <p>View submitted complaints and check status updates.</p>
+      </a>
+
+      <a href="app.html#feed" class="card">
+        <div class="card-icon">🧾</div>
+        <h3>All Reports</h3>
+        <p>Scrollable public feed of all complaints across the city.</p>
+      </a>
+
+      <a href="app.html#insights" class="card">
+        <div class="card-icon">📊</div>
+        <h3>City Insights</h3>
+        <p>Most common issues and area-wise statistics.</p>
+      </a>
+
+      <a href="app.html#leaderboard" class="card">
+        <div class="card-icon">🏆</div>
+        <h3>Leaderboard</h3>
+        <p>Area-wise active citizens and weekly/monthly rankings.</p>
+      </a>
+
+      <a href="javascript:void(0)" onclick="alert('Voice Input feature coming soon!')" class="card">
+        <div class="card-icon">🎤</div>
+        <h3>Quick Voice Report</h3>
+        <p>Report issues hands-free using speech recognition.</p>
+      </a>
+
+      <a href="app.html#offline" class="card">
+        <div class="card-icon">📶</div>
+        <h3>Offline Reports</h3>
+        <p>View pending complaints stored locally. Upload when online.</p>
+      </a>
+
+      <a href="app.html#discussions" class="card">
+        <div class="card-icon">🧑‍🤝‍🧑</div>
+        <h3>Community Discussions</h3>
+        <p>Join active discussions and trending civic issues.</p>
+      </a>
+
+      <a href="#how-it-works" class="card">
+        <div class="card-icon">🎓</div>
+        <h3>How It Works</h3>
+        <p>Simple 3-step explanation to instantly understand the platform.</p>
+      </a>
+
+      <a href="admin.html" class="card">
+        <div class="card-icon">🛠️</div>
+        <h3>Admin View</h3>
+        <p>Map and issue clusters for authorities and presentations.</p>
+      </a>
+
+      <a href="#privacy" class="card">
+        <div class="card-icon">🔒</div>
+        <h3>Privacy & Safety</h3>
+        <p>Learn about image blurring and user data protection.</p>
+      </a>
+    </section>
+
+    <!-- Scroll Space Extender -->
+    <div style="height: 100vh; display:flex; justify-content:center; align-items:center; opacity:0.1; font-size:3rem; font-weight:bold; color: var(--dark);">
+      Keep Scrolling to test Header...
+    </div>
+  </main>
+
+  <script type="module" src="./landing.js"></script>
+</body>
+</html>

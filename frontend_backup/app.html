@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CivicSeva - Fixing Kolkata</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="./style.css">
+    <!-- Google Fonts for better aesthetics -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="logo">
+        <h1>Civic<span>Seva</span></h1>
+      </div>
+      <div id="gamification-hud" style="color: var(--dark); font-size: 0.9rem; display: flex; flex-direction: column; align-items: flex-end; margin-right: 10px;">
+        <span style="font-weight: 600;"><span id="user-level">Loading...</span></span>
+        <span style="color: #F59E0B; font-weight: bold;">⭐ <span id="user-points">0</span> <span data-i18n="gamification.pts">pts</span></span>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <button id="theme-toggle" style="background:none; border:none; cursor:pointer; font-size:1.2rem;" title="Toggle Theme">🌗</button>
+        <select id="language-selector" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--white); color: var(--dark); cursor: pointer; font-weight: 500;">
+          <option value="en" style="color: black;">English</option>
+          <option value="bn" style="color: black;">বাংলা (Bengali)</option>
+          <option value="hi" style="color: black;">हिंदी (Hindi)</option>
+        </select>
+        <button id="report-btn" class="primary-btn" data-i18n="header.reportBtn">Report Issue</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div id="map"></div>
+    </main>
+
+    <!-- Reporting Modal (Hidden by default) -->
+    <div id="report-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2 data-i18n="modal.title">Report a Civic Issue</h2>
+        <p class="subtitle" data-i18n="modal.subtitle">Your report helps authorities clear the problem faster.</p>
+        
+        <form id="complaint-form" enctype="multipart/form-data">
+          <!-- Coordinates will be auto-filled from map click -->
+          <input type="hidden" id="lat" name="latitude">
+          <input type="hidden" id="lng" name="longitude">
+
+          <div class="form-group">
+            <label for="title" data-i18n="form.issueTitle">Issue Title</label>
+            <input type="text" id="title" name="title" required placeholder="e.g. Deep pothole on MG Road" data-i18n="[placeholder]form.titlePlaceholder">
+          </div>
+
+          <div class="form-group">
+            <label for="city" data-i18n="form.city">City</label>
+            <input type="text" id="city" name="city" required placeholder="e.g. Kolkata" data-i18n="[placeholder]form.cityPlaceholder">
+          </div>
+
+          <div class="form-group">
+            <label for="pincode" data-i18n="form.pincode">Pincode</label>
+            <input type="text" id="pincode" name="pincode" required placeholder="e.g. 700001" pattern="\d{6}" title="Pincode must be exactly 6 digits" data-i18n="[placeholder]form.pincodePlaceholder;[title]form.pincodeTitle">
+          </div>
+
+          <div class="form-group">
+            <label for="category" data-i18n="form.category">Category</label>
+            <select id="category" name="category" required>
+              <option value="Roads" data-i18n="form.categories.roads">Roads</option>
+              <option value="Garbage" data-i18n="form.categories.garbage">Garbage</option>
+              <option value="Water" data-i18n="form.categories.water">Water</option>
+              <option value="Electricity" data-i18n="form.categories.electricity">Electricity</option>
+              <option value="Others" data-i18n="form.categories.others">Others</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="description" data-i18n="form.description">Description</label>
+            <textarea id="description" name="description" rows="3" required placeholder="Provide more details..." data-i18n="[placeholder]form.descPlaceholder"></textarea>
+          </div>
+
+          <div class="form-group file-upload-wrapper">
+            <label for="photo" data-i18n="form.uploadPhoto">Upload Photo</label>
+            <input type="file" id="photo" name="photo" accept="image/*">
+            <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="blur-photo" name="blurPhoto" style="width: auto;">
+              <label for="blur-photo" style="display: inline; font-size: 0.85rem;" data-i18n="form.blur">Blur Faces/Number plates (Privacy)</label>
+            </div>
+            <small data-i18n="form.photoSubtitle" style="display: block; margin-top: 4px;">Optional, but highly recommended for faster resolution.</small>
+          </div>
+
+          <button type="submit" class="primary-btn full-width" data-i18n="form.submitBtn">Submit Report</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container"></div>
+
+    <footer style="position: fixed; bottom: 10px; left: 10px; z-index: 1001; font-size: 0.75rem; color: #6B7280;">
+      <a href="./admin.html" style="color: inherit; text-decoration: none; opacity: 0.5;">Admin Dashboard</a>
+    </footer>
+
+    <!-- Libraries -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="https://unpkg.com/i18next@23.10.1/i18next.min.js"></script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
