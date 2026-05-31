@@ -8,6 +8,8 @@ import ComplaintCard from '../components/layout/ComplaintCard';
 import { useSocket } from '../hooks/useSocket';
 import { useApi } from '../hooks/useApi';
 import { getAssetUrl } from '../config/constants';
+import { get as idbGet, set as idbSet } from 'idb-keyval';
+import { Virtuoso } from 'react-virtuoso';
 import EmptyState from '../components/common/EmptyState';
 import { ComplaintCardSkeleton } from '../components/common/Skeleton';
 
@@ -133,24 +135,23 @@ export default function MyComplaints() {
 
         // Cache the default view for offline support
         if (activeFilter === 'All' && !debouncedSearch && sortBy === 'newest') {
-          localStorage.setItem('civicseva_cached_complaints', JSON.stringify({
+          await idbSet('civicseva_cached_complaints', {
             complaints: formatted,
             counts: data.counts,
             total: data.pagination?.total
-          }));
+          });
         }
       }
     } catch (err) {
       console.error("Failed to fetch complaints:", err);
       // Fallback to cache on error
       if (activeFilter === 'All' && !debouncedSearch && sortBy === 'newest') {
-        const cached = localStorage.getItem('civicseva_cached_complaints');
+        const cached = await idbGet('civicseva_cached_complaints');
         if (cached) {
           try {
-            const parsed = JSON.parse(cached);
-            setComplaints(parsed.complaints || []);
-            if (parsed.counts) setStatusCounts(parsed.counts);
-            if (parsed.total) setTotalComplaints(parsed.total);
+            setComplaints(cached.complaints || []);
+            if (cached.counts) setStatusCounts(cached.counts);
+            if (cached.total) setTotalComplaints(cached.total);
           } catch (e) {
             console.error("Failed to parse cache", e);
           }
@@ -161,19 +162,21 @@ export default function MyComplaints() {
 
   useEffect(() => {
     // Load cache initially if empty to prevent empty state flash
-    if (complaints.length === 0 && activeFilter === 'All' && !debouncedSearch && sortBy === 'newest') {
-      const cached = localStorage.getItem('civicseva_cached_complaints');
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          setComplaints(parsed.complaints || []);
-          if (parsed.counts) setStatusCounts(parsed.counts);
-          if (parsed.total) setTotalComplaints(parsed.total);
-        } catch (e) {
-          console.error("Failed to parse cache", e);
+    const loadCache = async () => {
+      if (complaints.length === 0 && activeFilter === 'All' && !debouncedSearch && sortBy === 'newest') {
+        const cached = await idbGet('civicseva_cached_complaints');
+        if (cached) {
+          try {
+            setComplaints(cached.complaints || []);
+            if (cached.counts) setStatusCounts(cached.counts);
+            if (cached.total) setTotalComplaints(cached.total);
+          } catch (e) {
+            console.error("Failed to parse cache", e);
+          }
         }
       }
-    }
+    };
+    loadCache();
     fetchComplaints();
   }, [fetchComplaints]);
 
@@ -346,13 +349,19 @@ export default function MyComplaints() {
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="space-y-3"
+          className="flex-1 min-h-[500px]"
         >
-          {complaints.map(complaint => (
-            <motion.div key={complaint.id} variants={itemVariants}>
-              <ComplaintCard complaint={complaint} />
-            </motion.div>
-          ))}
+          <Virtuoso
+            style={{ height: '100%', width: '100%' }}
+            data={complaints}
+            itemContent={(index, complaint) => (
+              <div className="pb-3 px-1">
+                <motion.div variants={itemVariants}>
+                  <ComplaintCard complaint={complaint} />
+                </motion.div>
+              </div>
+            )}
+          />
         </motion.div>
       ) : (
         <EmptyState 

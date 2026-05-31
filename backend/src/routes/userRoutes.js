@@ -9,59 +9,107 @@ const { calculateImpactScore } = require('../utils/impactEngine');
 // @desc    Get leaderboard data
 // @route   GET /api/users/leaderboard
 // @access  Public
+// @desc    Get leaderboard data
+// @route   GET /api/users/leaderboard
+// @access  Public
 router.get('/leaderboard', async (req, res) => {
   try {
-    const users = await User.find().select('-password');
-    const allComplaints = await Complaint.find();
-    const allComments = await Comment.find();
-    
-    const leaderData = users.map(user => {
-      const userComplaints = allComplaints.filter(c => c.user && c.user.toString() === user._id.toString());
-      const userComments = allComments.filter(c => c.user && c.user.toString() === user._id.toString()).length;
-      
-      // Count how many times this user has verified OTHER reports
-      const userVerifications = allComplaints.filter(c => c.verifications && c.verifications.includes(user._id)).length;
-      
-      const reports = userComplaints.length;
-      const resolved = userComplaints.filter(c => c.status === 'Resolved').length;
-      const upvotes = userComplaints.reduce((acc, curr) => acc + (curr.upvotes || 0), 0);
-      const streak = user.currentStreak || 0;
+    const leaderData = await User.aggregate([
+      {
+        $lookup: {
+          from: 'complaints',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'userComplaints'
+        }
+      },
+      {
+        $lookup: {
+          from: 'comments',
+          localField: '_id',
+          foreignField: 'userId',
+          as: 'userComments'
+        }
+      },
+      {
+        $lookup: {
+          from: 'complaints',
+          localField: '_id',
+          foreignField: 'verifications',
+          as: 'verifiedComplaints'
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          level: 1,
+          currentStreak: 1,
+          reports: { $size: '$userComplaints' },
+          comments: { $size: '$userComments' },
+          verifications: { $size: '$verifiedComplaints' },
+          resolved: {
+            $size: {
+              $filter: {
+                input: '$userComplaints',
+                as: 'c',
+                cond: { $eq: ['$$c.status', 'Resolved'] }
+              }
+            }
+          },
+          upvotes: {
+            $sum: '$userComplaints.upvotes'
+          },
+          categoryBreakdown: {
+            $reduce: {
+              input: '$userComplaints.category',
+              initialValue: [],
+              in: {
+                $concatArrays: ['$$value', ['$$this']]
+              }
+            }
+          }
+        }
+      }
+    ]);
 
-      // Category breakdown for weighted impact
-      const categoryBreakdown = userComplaints.reduce((acc, c) => {
-        acc[c.category] = (acc[c.category] || 0) + 1;
+    // Map through the aggregated data to apply the JS impact score calculation 
+    // since impactScore algorithm is complex and shared with other routes.
+    const mappedLeaderData = leaderData.map(user => {
+      // Create category breakdown map
+      const categoryBreakdown = (user.categoryBreakdown || []).reduce((acc, cat) => {
+        acc[cat] = (acc[cat] || 0) + 1;
         return acc;
       }, {});
 
       const impactScore = calculateImpactScore({
-        reports,
-        resolved,
-        upvotes,
-        streak,
-        verifications: userVerifications,
-        comments: userComments,
+        reports: user.reports,
+        resolved: user.resolved,
+        upvotes: user.upvotes,
+        streak: user.currentStreak || 0,
+        verifications: user.verifications,
+        comments: user.comments,
         categoryBreakdown
       }, user.level);
-      
+
       return {
         id: user._id,
         name: user.name,
         avatar: user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2),
-        reports,
-        resolved,
-        upvotes,
-        streak,
+        reports: user.reports,
+        resolved: user.resolved,
+        upvotes: user.upvotes,
+        streak: user.currentStreak || 0,
         badge: user.level || 'Beginner',
         impactScore
       };
     });
 
+    mappedLeaderData.sort((a, b) => b.impactScore - a.impactScore);
     
-    // Sort by impact score descending
-    leaderData.sort((a, b) => b.impactScore - a.impactScore);
-    
-    res.json(leaderData);
+    res.json(mappedLeaderData);
   } catch (err) {
+    console.error('Leaderboard aggregation error:', err);
     res.status(500).json({ message: err.message });
   }
 });

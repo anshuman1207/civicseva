@@ -2,6 +2,7 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { useState, lazy, Suspense, useCallback } from 'react';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ComponentErrorBoundary from './components/common/ComponentErrorBoundary';
+import { SocketProvider } from './context/SocketContext';
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
 import BottomNav from './components/layout/BottomNav';
@@ -52,13 +53,8 @@ function AppContent() {
       navigate('/login', { state: { from: location } });
       return;
     }
-    
-    if (!selectedLocation) {
-      showToast("Please click anywhere on the map first to select the issue location.", "warning");
-      return;
-    }
     setIsReportModalOpen(true);
-  }, [isAuthenticated, location, navigate, selectedLocation, showToast]);
+  }, [isAuthenticated, location, navigate]);
 
   const handleCloseReportModal = useCallback(() => {
     setIsReportModalOpen(false);
@@ -150,7 +146,9 @@ function AppContent() {
 function App() {
   return (
     <DemoProvider>
-      <AppContent />
+      <SocketProvider>
+        <AppContent />
+      </SocketProvider>
     </DemoProvider>
   );
 }

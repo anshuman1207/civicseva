@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow, MarkerClustererF } from '@react-google-maps/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, ArrowUp, Clock, AlertTriangle, Radio, RefreshCw } from 'lucide-react';
 import { useSocket } from '../../hooks/useSocket';
@@ -338,15 +338,26 @@ const MapContainer = ({ selectedLocation, onLocationSelect, readOnly = false, ma
         )}
 
         {/* Status-colored complaint markers */}
-        {filteredMarkers.map((m) => (
-          <Marker
-            key={m.id}
-            position={{ lat: m.lat, lng: m.lng }}
-            icon={markerIcons[m.status] || markerIcons['Pending']}
-            onClick={() => setActiveMarker(m)}
-            title={`${m.title} — ${m.status}`}
-          />
-        ))}
+        <MarkerClustererF
+          options={{
+            imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
+          }}
+        >
+          {(clusterer) => (
+            <>
+              {filteredMarkers.map((m) => (
+                <Marker
+                  key={m.id}
+                  position={{ lat: m.lat, lng: m.lng }}
+                  icon={markerIcons[m.status] || markerIcons['Pending']}
+                  onClick={() => setActiveMarker(m)}
+                  title={`${m.title} — ${m.status}`}
+                  clusterer={clusterer}
+                />
+              ))}
+            </>
+          )}
+        </MarkerClustererF>
 
         {/* ─── Enhanced InfoWindow ────────────── */}
         <AnimatePresence>

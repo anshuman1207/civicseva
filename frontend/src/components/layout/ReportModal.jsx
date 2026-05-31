@@ -5,6 +5,7 @@ import { X, MapPin, Mic, MicOff, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../utils/api';
 import { useToast } from '../../context/ToastContext';
+import imageCompression from 'browser-image-compression';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -192,6 +193,46 @@ const ReportModal = ({ isOpen, onClose, location }) => {
       
       fetchLocationDetails();
       fetchNearbyIssues();
+    } else if (isOpen && !location) {
+      // HTML5 Geolocation fallback if opened from Navbar without map click
+      if (navigator.geolocation) {
+        setIsGeocoding(true);
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            try {
+              const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY}`);
+              const data = await res.json();
+              if (data.status === 'OK' && data.results.length > 0) {
+                const addressComponents = data.results[0].address_components;
+                let fetchedCity = '';
+                let fetchedPincode = '';
+                addressComponents.forEach(component => {
+                  if (component.types.includes('locality')) fetchedCity = component.long_name;
+                  if (component.types.includes('postal_code')) fetchedPincode = component.long_name;
+                });
+                setFormData(prev => ({
+                  ...prev,
+                  city: fetchedCity || prev.city,
+                  pincode: fetchedPincode || prev.pincode
+                }));
+              }
+              // Set the location object manually for submission
+              location = { lat, lng };
+            } catch (err) {
+              console.error("Geocoding failed", err);
+            } finally {
+              setIsGeocoding(false);
+            }
+          },
+          (err) => {
+            console.error("Geolocation error:", err);
+            notifyInfo("Could not detect location automatically. Please ensure location is enabled.");
+            setIsGeocoding(false);
+          }
+        );
+      }
     }
   }, [location, isOpen]);
 
@@ -248,11 +289,22 @@ const ReportModal = ({ isOpen, onClose, location }) => {
 
     const submissionData = new FormData();
     Object.keys(formData).forEach(key => submissionData.append(key, formData[key].trim()));
-    submissionData.append('latitude', location.lat);
-    submissionData.append('longitude', location.lng);
+    submissionData.append('latitude', location?.lat || 0);
+    submissionData.append('longitude', location?.lng || 0);
     
     if (photo) {
-      submissionData.append('photo', photo);
+      try {
+        const compressedFile = await imageCompression(photo, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+          exifOrientation: blurPhoto ? undefined : 1 // Optionally strip EXIF if blurPhoto is checked, or always strip it
+        });
+        submissionData.append('photo', compressedFile, compressedFile.name);
+      } catch (err) {
+        console.error("Image compression failed", err);
+        submissionData.append('photo', photo);
+      }
     }
 
     if (!isOnline) {
@@ -304,7 +356,7 @@ const ReportModal = ({ isOpen, onClose, location }) => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="relative bg-[var(--color-surface-container-lowest)] w-full max-w-lg rounded-[var(--radius-xl)] shadow-[var(--shadow-soft-3)] flex flex-col max-h-[90vh] overflow-hidden"
+            className="relative bg-[var(--color-surface-container-lowest)] w-full max-w-lg rounded-[var(--radius-xl)] shadow-[var(--shadow-soft-3)] flex flex-col max-h-[90dvh] overflow-hidden"
           >
         {/* Header */}
         <div className="px-6 py-5 border-b border-[var(--color-outline-variant)] flex justify-between items-center bg-[var(--color-surface-bright)]">
@@ -321,7 +373,8 @@ const ReportModal = ({ isOpen, onClose, location }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 flex flex-col gap-5">
+        <fieldset disabled={isSubmitting} className="p-0 m-0 border-0 flex-1 flex flex-col overflow-y-auto overflow-x-hidden min-h-0">
+          <form onSubmit={handleSubmit} className="p-6 flex-1 flex flex-col gap-5">
           
           {/* Duplicate Detection Alert */}
           <AnimatePresence>
@@ -479,6 +532,7 @@ const ReportModal = ({ isOpen, onClose, location }) => {
             </button>
           </div>
         </form>
+        </fieldset>
         </motion.div>
       </div>
       )}

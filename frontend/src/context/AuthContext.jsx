@@ -14,11 +14,9 @@ export const AuthProvider = ({ children }) => {
       if (storedUser) {
         try {
           const freshUser = await api.get('/auth/me');
-          const parsedUser = JSON.parse(storedUser);
-          const updatedUser = { ...freshUser, token: parsedUser.token };
           
-          setUser(updatedUser);
-          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
+          setUser(freshUser);
+          localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(freshUser));
         } catch (error) {
           console.error('Auth check failed:', error);
           // If 401, api utility handles redirect. For other errors (offline), keep current user.

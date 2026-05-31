@@ -8,9 +8,9 @@ import DemoModeToggle from '../demo/DemoModeToggle';
 
 const NAV_ITEMS = [
   { name: 'Dashboard', path: '/', icon: Home },
-  { name: 'Live Map', path: '/map', icon: MapPin },
+  { name: 'Live Map', path: '/map', icon: MapPin, tourId: 'nav-map' },
   { name: 'My Complaints', path: '/complaints', icon: AlertCircle },
-  { name: 'Leaderboard', path: '/leaderboard', icon: Award },
+  { name: 'Leaderboard', path: '/leaderboard', icon: Award, tourId: 'nav-leaderboard' },
   { name: 'Insights', path: '/insights', icon: BarChart3 },
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
@@ -35,6 +35,7 @@ function Sidebar() {
               <Link
                 to={item.path}
                 aria-label={item.name}
+                data-tour={item.tourId}
                 className={`flex items-center gap-3 px-4 py-3 rounded-[var(--radius-lg)] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)] ${
                   isActive 
                     ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)] shadow-[var(--shadow-soft-1)]' 

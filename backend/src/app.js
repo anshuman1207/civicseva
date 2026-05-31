@@ -6,6 +6,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
+const cookieParser = require('cookie-parser');
 
 const complaintRoutes = require('./routes/complaintRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -33,7 +34,8 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
 
-// 3. Body Parser & Sanitization
+// 3. Body Parser & Sanitization & Cookies
+app.use(cookieParser());
 app.use(express.json({ limit: '10kb' })); // Body limit to prevent DOS
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 

@@ -19,15 +19,11 @@ class ApiError extends Error {
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const request = async (endpoint, options = {}, retries = 2) => {
-  const user = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER));
-  const token = user?.token;
-
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
 
   const headers = {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
     ...options.headers,
   };
 
@@ -39,6 +35,7 @@ export const request = async (endpoint, options = {}, retries = 2) => {
   const config = {
     ...options,
     headers,
+    credentials: 'include',
     signal: controller.signal,
   };
 
@@ -59,7 +56,6 @@ export const request = async (endpoint, options = {}, retries = 2) => {
         status: 401,
         message: errorData.message || 'Unauthorized',
         code: errorData.code || 'NO_CODE',
-        hasToken: !!token,
         timestamp: new Date().toISOString()
       });
 

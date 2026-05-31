@@ -47,7 +47,7 @@ export default function ProgressionStats({ user }) {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-[var(--color-surface-container-lowest)] to-[var(--color-surface-container-low)] rounded-[var(--radius-2xl)] p-6 shadow-[var(--shadow-soft-2)] border border-[var(--color-outline-variant)]/20 relative overflow-hidden group"
+      className="bg-gradient-to-br from-[var(--color-surface-container-lowest)] to-[var(--color-surface-container-low)] rounded-[var(--radius-2xl)] p-6 shadow-[var(--shadow-soft-2)] border border-[var(--color-outline-variant)]/20 relative overflow-hidden group shrink-0"
     >
       {/* Decorative background flare */}
       <div className={`absolute top-0 right-0 w-32 h-32 blur-3xl opacity-20 -mr-10 -mt-10 transition-colors duration-1000 ${currentLevel.bg}`} />
@@ -65,7 +65,7 @@ export default function ProgressionStats({ user }) {
               </div>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[var(--color-on-surface)] tracking-tight">
+              <h2 className="text-xl font-bold text-[var(--color-on-surface)] tracking-tight leading-normal py-0.5">
                 {user.name.split(' ')[0]}
               </h2>
               <div className="flex items-center gap-2 mt-0.5">
@@ -81,7 +81,7 @@ export default function ProgressionStats({ user }) {
           </div>
 
           <div className="text-right">
-            <p className="text-2xl font-black text-[var(--color-on-surface)] tracking-tighter">
+            <p className="text-2xl font-black text-[var(--color-on-surface)] tracking-tighter leading-normal py-0.5">
               {user.stats?.impactScore || 0}
             </p>
             <p className="text-[10px] font-bold text-[var(--color-on-surface-variant)] uppercase tracking-widest">

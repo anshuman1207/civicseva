@@ -4,7 +4,7 @@ import {
   MapPin, ArrowRight, Plus, TrendingUp, Users, 
   Shield, Zap, ChevronRight, Eye, Star, Award
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ComplaintCard from '../components/layout/ComplaintCard';
 import MapContainer from '../components/map/MapContainer';
@@ -15,7 +15,7 @@ import { useSocket } from '../hooks/useSocket';
 import { useApi } from '../hooks/useApi';
 import { getAssetUrl } from '../config/constants';
 import { useNotification } from '../context/NotificationContext';
-import { DashboardSkeleton, ComplaintCardSkeleton } from '../components/common/Skeleton';
+import { DashboardSkeleton, ComplaintCardSkeleton, Skeleton } from '../components/common/Skeleton';
 import EmptyState from '../components/common/EmptyState';
 import ComponentErrorBoundary from '../components/common/ComponentErrorBoundary';
 import ShowcaseBanner from '../components/demo/ShowcaseBanner';
@@ -145,33 +145,74 @@ const CommunityPulse = React.memo(({ total, resolved, pending, inProgress }) => 
 
 // ─── Nearby Alert Item ──────────────────────────
 const NearbyAlert = React.memo(({ complaint, onClick }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const severityColors = {
-    Roads: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-500' },
-    Water: { bg: 'bg-blue-50', text: 'text-blue-600', dot: 'bg-blue-500' },
-    Electricity: { bg: 'bg-amber-50', text: 'text-amber-600', dot: 'bg-amber-500' },
-    Garbage: { bg: 'bg-green-50', text: 'text-green-600', dot: 'bg-green-500' },
-    Others: { bg: 'bg-gray-50', text: 'text-gray-600', dot: 'bg-gray-500' },
+    Roads: { bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400', dot: 'bg-red-500', border: 'border-red-200 dark:border-red-800/30' },
+    Water: { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500', border: 'border-blue-200 dark:border-blue-800/30' },
+    Electricity: { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500', border: 'border-amber-200 dark:border-amber-800/30' },
+    Garbage: { bg: 'bg-green-50 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400', dot: 'bg-green-500', border: 'border-green-200 dark:border-green-800/30' },
+    Others: { bg: 'bg-gray-50 dark:bg-gray-800/50', text: 'text-gray-600 dark:text-gray-400', dot: 'bg-gray-500', border: 'border-gray-200 dark:border-gray-700/50' },
   };
   const s = severityColors[complaint.category] || severityColors.Others;
 
   return (
-    <button 
-      onClick={onClick}
-      aria-label={`View ${complaint.category} issue: ${complaint.title} at ${complaint.location}`}
-      className="w-full text-left flex items-center gap-3 p-3 rounded-[var(--radius-lg)] hover:bg-[var(--color-surface-container-low)] transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
-    >
-      <div className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-[var(--color-on-surface)] truncate">{complaint.title}</p>
-        <p className="text-xs text-[var(--color-on-surface-variant)] flex items-center gap-1 mt-0.5">
-          <MapPin className="w-3 h-3" />
-          {complaint.location}
-        </p>
+    <div className="w-full text-left p-3 rounded-[var(--radius-lg)] hover:bg-[var(--color-surface-container-low)] transition-colors group">
+      <div 
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center gap-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+      >
+        <div className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-medium text-[var(--color-on-surface)] ${isExpanded ? '' : 'truncate'}`}>
+            {complaint.title}
+          </p>
+          <p className="text-xs text-[var(--color-on-surface-variant)] flex items-center gap-1 mt-0.5">
+            <MapPin className="w-3 h-3 text-[var(--color-primary)]" />
+            <span className={isExpanded ? '' : 'truncate'}>{complaint.location}</span>
+          </p>
+        </div>
+        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border shrink-0 ${s.bg} ${s.text} ${s.border}`}>
+          {complaint.category}
+        </span>
       </div>
-      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${s.bg} ${s.text} shrink-0`}>
-        {complaint.category}
-      </span>
-    </button>
+
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+            animate={{ height: 'auto', opacity: 1, marginTop: 12 }}
+            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="pt-2 border-t border-[var(--color-outline-variant)]/10 space-y-3">
+              {complaint.description && (
+                <p className="text-xs text-[var(--color-on-surface-variant)] leading-relaxed font-normal bg-[var(--color-surface-container-low)] p-2.5 rounded-[var(--radius-md)]">
+                  {complaint.description}
+                </p>
+              )}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-[var(--color-on-surface-variant)] uppercase tracking-wider">Status:</span>
+                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded bg-[var(--color-surface-container)] text-[var(--color-on-surface)] border border-[var(--color-outline-variant)]/20`}>
+                    {complaint.status}
+                  </span>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClick();
+                  }}
+                  className="px-3 py-1 bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:bg-[var(--color-primary-dim)] text-[10px] font-bold uppercase rounded-lg shadow-sm transition-colors active:scale-95 duration-200"
+                >
+                  View on Map
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 });
 
@@ -194,6 +235,7 @@ export default function Dashboard() {
         ...comp,
         id: comp._id,
         location: `${comp.city || 'Kolkata'}, ${comp.pincode || ''}`.trim().replace(/,$/, ''),
+        description: comp.description || '',
         lat: Number(comp.location?.coordinates?.[1]) || 22.5726,
         lng: Number(comp.location?.coordinates?.[0]) || 88.3639,
         timeAgo: 'Just now',
@@ -279,6 +321,7 @@ export default function Dashboard() {
           id: comp._id,
           title: comp.title,
           location: comp.address || `${comp.location?.coordinates?.[1]?.toFixed(4) || 0}, ${comp.location?.coordinates?.[0]?.toFixed(4) || 0}`,
+          description: comp.description || '',
           lat: Number(comp.location?.coordinates?.[1]) || 22.5726,
           lng: Number(comp.location?.coordinates?.[0]) || 88.3639,
           category: comp.category,
@@ -298,11 +341,20 @@ export default function Dashboard() {
         setUserProfile(profileData);
         
         // Derive stats
-        const total = formatted.length;
-        const resolved = formatted.filter(c => c.status === 'Resolved').length;
-        const inProgress = formatted.filter(c => c.status === 'In Progress').length;
-        const pending = formatted.filter(c => c.status === 'Pending').length;
-        setStats({ total, resolved, inProgress, pending });
+        if (data && data.counts) {
+          setStats({
+            total: data.counts.All || 0,
+            resolved: data.counts.Resolved || 0,
+            inProgress: data.counts['In Progress'] || 0,
+            pending: data.counts.Pending || 0
+          });
+        } else {
+          const total = formatted.length;
+          const resolved = formatted.filter(c => c.status === 'Resolved').length;
+          const inProgress = formatted.filter(c => c.status === 'In Progress').length;
+          const pending = formatted.filter(c => c.status === 'Pending').length;
+          setStats({ total, resolved, inProgress, pending });
+        }
 
       } catch (error) {
         // useApi already shows a toast, we just log it for debugging
@@ -344,7 +396,7 @@ export default function Dashboard() {
         <ShowcaseBanner stats={{ total: stats.total, rate: stats.total > 0 ? Math.round((stats.resolved / stats.total) * 100) : 78, users: '200+' }} />
       )}
       {/* ─── Header ──────────────────────── */}
-      <motion.div variants={itemVariants} initial="hidden" animate="show" className="flex items-end justify-between gap-4">
+      <motion.div variants={itemVariants} initial="hidden" animate="show" className="flex items-end justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-[var(--color-on-surface)] tracking-tight">
             Dashboard
@@ -353,13 +405,20 @@ export default function Dashboard() {
             Real-time civic pulse of your city
           </p>
         </div>
-        <div className={`hidden sm:flex items-center gap-2 text-xs font-medium transition-colors duration-500 ${
+        <div className={`flex items-center gap-2 text-xs font-medium transition-colors duration-500 ${
           liveFlash ? 'text-green-600 font-semibold' : 'text-[var(--color-on-surface-variant)]'
         }`}>
-          <div className={`w-2 h-2 rounded-full transition-all duration-500 ${
-            liveFlash ? 'bg-green-400 scale-125 animate-ping' : 'bg-green-500 animate-pulse'
-          }`} />
-          {liveFlash ? 'New report!' : 'Live data'}
+          <div className="relative flex h-2 w-2">
+            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+              liveFlash ? 'bg-green-400' : 'bg-emerald-400'
+            }`} />
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${
+              liveFlash ? 'bg-green-500' : 'bg-emerald-500'
+            }`} />
+          </div>
+          <span className="font-bold text-[10px] uppercase tracking-wider">
+            {liveFlash ? 'New report!' : 'Live City Pulse'}
+          </span>
         </div>
       </motion.div>
 
@@ -373,7 +432,7 @@ export default function Dashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0"
       >
         <StatCard
           label="Total Reported"
@@ -420,7 +479,7 @@ export default function Dashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-1 lg:grid-cols-3 gap-4"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-4 shrink-0"
       >
         {/* Quick Actions */}
         <motion.div variants={itemVariants} className="lg:col-span-2 flex flex-col gap-3">
@@ -474,7 +533,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* ─── Main Content: Activity + Nearby + Map ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 min-h-[420px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 min-h-[420px] shrink-0">
         
         {/* Left: Recent Activity Feed */}
         <div className="lg:col-span-2 flex flex-col gap-3">
@@ -608,7 +667,7 @@ export default function Dashboard() {
             {apiLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-12 w-full rounded-[var(--radius-lg)] bg-[var(--color-surface-container-low)] animate-pulse" />
+                  <Skeleton key={i} className="h-12 w-full rounded-[var(--radius-lg)]" />
                 ))}
               </div>
             ) : nearbyAlerts.length > 0 ? (
@@ -628,7 +687,7 @@ export default function Dashboard() {
             <GamificationCenter user={userProfile} />
           </div>
 
-          <div className="h-[280px]">
+          <div className="h-[480px]">
             <ComponentErrorBoundary name="Activity Feed">
               <ActivityFeed />
             </ComponentErrorBoundary>

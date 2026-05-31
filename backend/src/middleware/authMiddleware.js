@@ -6,9 +6,9 @@ const asyncHandler = require('./asyncHandler');
 const protect = asyncHandler(async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (req.cookies.token || (req.headers.authorization && req.headers.authorization.startsWith('Bearer'))) {
     try {
-      token = req.headers.authorization.split(' ')[1];
+      token = req.cookies.token || req.headers.authorization.split(' ')[1];
 
       // Check if token is blacklisted
       const isBlacklisted = await BlacklistedToken.findOne({ token });
@@ -73,9 +73,9 @@ const admin = (req, res, next) => {
 };
 
 const optionalAuth = async (req, res, next) => {
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (req.cookies.token || (req.headers.authorization && req.headers.authorization.startsWith('Bearer'))) {
     try {
-      const token = req.headers.authorization.split(' ')[1];
+      const token = req.cookies.token || req.headers.authorization.split(' ')[1];
       
       // Check blacklist even for optional auth
       const isBlacklisted = await BlacklistedToken.findOne({ token });

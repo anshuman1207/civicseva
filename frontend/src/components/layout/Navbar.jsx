@@ -42,7 +42,7 @@ function Navbar({ onReportClick }) {
           <button className="p-2 rounded-full hover:bg-[var(--color-surface-container)] hover:scale-105 active:scale-95 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]" aria-label="Menu">
             <Menu className="w-5 h-5 text-[var(--color-on-surface)]" aria-hidden="true" />
           </button>
-          <Link to="/" className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[var(--color-on-surface)] hover:opacity-80 transition-opacity">
+          <Link to="/" data-tour="navbar-logo" className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[var(--color-on-surface)] hover:opacity-80 transition-opacity">
             Civic<span className="text-[var(--color-primary)]">Seva</span>
             <span
               className={`w-2 h-2 rounded-full shrink-0 transition-colors duration-500 ${
@@ -87,6 +87,7 @@ function Navbar({ onReportClick }) {
           
           <button 
             onClick={onReportClick}
+            data-tour="report-button"
             className={`hidden sm:flex items-center justify-center px-5 py-2 rounded-[var(--radius-lg)] text-sm font-semibold hover:scale-[1.02] active:scale-[0.98] shadow-[var(--shadow-soft-2)] transition-all duration-300 ${
               !isOnline ? 'bg-amber-500 text-white' : 'bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:brightness-110'
             }`}

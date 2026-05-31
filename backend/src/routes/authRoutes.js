@@ -16,6 +16,23 @@ const generateToken = (id) => {
   });
 };
 
+const sendTokenResponse = (user, statusCode, res) => {
+  const token = generateToken(user._id);
+  const options = {
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  };
+  
+  res.status(statusCode).cookie('token', token, options).json({
+    _id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  });
+};
+
 // @desc    Register new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -42,13 +59,7 @@ router.post('/register', asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    res.status(201).json({
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token: generateToken(user._id),
-    });
+    sendTokenResponse(user, 201, res);
   } else {
     throw new AppError('Invalid user data received', 400);
   }
@@ -76,13 +87,7 @@ router.post('/login', asyncHandler(async (req, res) => {
   
   if (isMatch) {
     console.log(`Login successful for ${email}`);
-    res.json({
-      _id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token: generateToken(user._id),
-    });
+    sendTokenResponse(user, 200, res);
   } else {
     console.log(`Login failed: Incorrect password for ${email}`);
     // Optional: Check if password was plain text in DB (emergency check)
@@ -92,13 +97,7 @@ router.post('/login', asyncHandler(async (req, res) => {
        await user.save();
        
        // Allow login after fixing
-       return res.json({
-         _id: user.id,
-         name: user.name,
-         email: user.email,
-         role: user.role,
-         token: generateToken(user._id),
-       });
+       return sendTokenResponse(user, 200, res);
     }
     throw new UnauthorizedError('Invalid email or password');
   }
@@ -231,6 +230,11 @@ router.post('/logout', protect, asyncHandler(async (req, res) => {
       expiresAt: new Date(decoded.exp * 1000)
     });
   }
+
+  res.cookie('token', 'none', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
 
   res.json({ message: 'Successfully logged out and session invalidated' });
 }));
